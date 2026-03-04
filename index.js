@@ -7,6 +7,9 @@ const NOTE_COUNT = 47;
 
 const gridEl = document.getElementById('grid');
 const legendEl = document.getElementById('legend');
+const chaosToggle = document.getElementById('chaos-toggle');
+
+let isChaos = chaosToggle.checked;
 
 // Build 47 distinct hues, evenly spaced around the circle.
 const hues = Array.from({ length: NOTE_COUNT }, (_, i) => Math.round((360 * i) / NOTE_COUNT));
@@ -145,28 +148,52 @@ function shuffleInPlace(arr) {
 function computeGrid() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  let cols = Math.max(1, Math.floor(vw / MIN_CELL_PX));
-  let cellSize = Math.floor(vw / cols);
-  if (cellSize < MIN_CELL_PX) {
-    cols = Math.max(1, Math.floor(vw / MIN_CELL_PX));
-    cellSize = Math.max(MIN_CELL_PX, Math.floor(vw / cols));
+
+  if (isChaos) {
+    let cols = Math.max(1, Math.floor(vw / MIN_CELL_PX));
+    let cellSize = Math.floor(vw / cols);
+    if (cellSize < MIN_CELL_PX) {
+      cols = Math.max(1, Math.floor(vw / MIN_CELL_PX));
+      cellSize = Math.max(MIN_CELL_PX, Math.floor(vw / cols));
+    }
+    const rows = Math.max(1, Math.ceil(vh / cellSize));
+
+    document.documentElement.style.setProperty('--cols', String(cols));
+    document.documentElement.style.removeProperty('--row-height');
+    document.documentElement.style.removeProperty('--col-width');
+    document.documentElement.style.setProperty('--cell-size', `${cellSize}px`);
+
+    return { cols, rows, cellSize };
+  } else {
+    // Column layout: one column per note, filling width
+    const cols = NOTE_COUNT;
+    const rows = 1;
+    const colWidth = vw / NOTE_COUNT;
+
+    document.documentElement.style.setProperty('--cols', String(cols));
+    document.documentElement.style.setProperty('--col-width', `${colWidth}px`);
+    document.documentElement.style.setProperty('--row-height', `${vh}px`);
+
+    return { cols, rows, colWidth };
   }
-  const rows = Math.max(1, Math.ceil(vh / cellSize));
-  document.documentElement.style.setProperty('--cols', String(cols));
-  document.documentElement.style.setProperty('--rows', String(rows));
-  document.documentElement.style.setProperty('--cell-size', `${cellSize}px`);
-  return { cols, rows, cellSize };
 }
 
-function buildCells() {
-  const { cols, rows } = computeGrid();
-  const need = cols * rows;
-  if (need === currentCells) return;
+function buildCells(force = false) {
+  const gridInfo = computeGrid();
+  const { cols, rows } = gridInfo;
+  const need = isChaos ? cols * rows : NOTE_COUNT;
+
+  if (need === currentCells && !force) return;
   currentCells = need;
 
-  // Prepare mapping: repeat the 47-note cycle to cover all cells, then shuffle for random arrangement.
-  noteOrder = Array.from({ length: need }, (_, i) => i % NOTE_COUNT);
-  shuffleInPlace(noteOrder);
+  // Prepare mapping: repeat the 47-note cycle to cover all cells.
+  if (isChaos) {
+    noteOrder = Array.from({ length: need }, (_, i) => i % NOTE_COUNT);
+    shuffleInPlace(noteOrder);
+  } else {
+    // Sequential order for columns
+    noteOrder = Array.from({ length: NOTE_COUNT }, (_, i) => i);
+  }
 
   // Build DOM
   const frag = document.createDocumentFragment();
@@ -280,8 +307,36 @@ gridEl.addEventListener('pointerdown', () => {
   if (!audioCtx) lazyInitAudio();
 }, { once: true });
 
+chaosToggle.addEventListener('change', (e) => {
+  isChaos = e.target.checked;
+  // Trigger rebuild
+  buildCells(true);
+});
+
+function checkOrientation() {
+  const isLandscape = window.innerWidth > window.innerHeight;
+  if (isLandscape) {
+    if (isChaos) {
+      isChaos = false;
+      chaosToggle.checked = false;
+      buildCells(true);
+    }
+  } else {
+    // Re-enable chaos in portrait IF it was disabled by orientation
+    // We can detect this if chaosToggle.checked is true but isChaos is false
+    if (!isChaos && chaosToggle.checked) {
+       isChaos = true;
+       buildCells(true);
+    }
+  }
+}
+
 window.addEventListener('resize', () => {
+  checkOrientation();
   // Debounce resize rebuild
   clearTimeout(buildCells._t);
   buildCells._t = setTimeout(buildCells, 80);
 });
+
+// Initial orientation check
+checkOrientation();

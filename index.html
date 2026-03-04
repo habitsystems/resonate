@@ -23,8 +23,8 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(var(--cols), var(--cell-size));
-      grid-auto-rows: var(--cell-size);
+      grid-template-columns: repeat(var(--cols), var(--col-width, var(--cell-size)));
+      grid-auto-rows: var(--row-height, var(--cell-size));
       width: 100vw;
       height: 100vh;
       user-select: none;
@@ -32,11 +32,14 @@
     }
     /*noinspection CssUnusedSymbol*/
     .cell {
-      width: var(--cell-size);
-      height: var(--cell-size);
+      width: var(--col-width, var(--cell-size));
+      height: var(--row-height, var(--cell-size));
       /* color set inline via style attribute */
       transition: transform 60ms ease, filter 120ms ease;
       outline: none;
+      border: none;
+      padding: 0;
+      margin: 0;
     }
     /*noinspection CssUnusedSymbol*/
     .cell:active { transform: scale(0.96); }
@@ -52,9 +55,28 @@
     }
     /*noinspection CssUnusedSymbol*/
     .legend .swatch { display:inline-block; width:10px; height:10px; vertical-align:middle; margin-right:4px; border-radius:2px; }
+    .controls {
+      position: fixed;
+      left: 8px; top: 8px;
+      font-size: 14px;
+      background: rgba(0,0,0,0.35);
+      padding: 8px 12px; border-radius: 6px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      z-index: 10;
+    }
+    .controls label { cursor: pointer; }
+    .controls input { cursor: pointer; }
   </style>
 </head>
 <body>
+  <div class="controls">
+    <input type="checkbox" id="chaos-toggle" checked>
+    <label for="chaos-toggle">Chaos</label>
+  </div>
   <div id="grid" class="grid" aria-label="Harp grid"></div>
   <div id="legend" class="legend" aria-hidden="true"></div>
   <script src="./index.js" type="module"></script>
