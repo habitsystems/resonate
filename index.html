@@ -48,16 +48,6 @@
     .cell:active { transform: scale(0.96); }
     /*noinspection CssUnusedSymbol*/
     .cell.playing { filter: brightness(1.2) saturate(1.15); }
-    .legend {
-      position: fixed;
-      right: 8px; bottom: 8px;
-      font-size: 12px; opacity: 0.75;
-      background: rgba(0,0,0,0.35);
-      padding: 6px 8px; border-radius: 6px;
-      pointer-events: none;
-    }
-    /*noinspection CssUnusedSymbol*/
-    .legend .swatch { display:inline-block; width:10px; height:10px; vertical-align:middle; margin-right:4px; border-radius:2px; }
     .controls {
       position: fixed;
       left: 8px; top: 8px;
@@ -81,7 +71,6 @@
     <label for="chaos-toggle">Chaos</label>
   </div>
   <div id="grid" class="grid" aria-label="Harp grid"></div>
-  <div id="legend" class="legend" aria-hidden="true"></div>
   <script src="./index.js" type="module"></script>
 </body>
 </html>

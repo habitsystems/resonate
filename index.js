@@ -6,7 +6,6 @@ const MIN_CELL_PX = 20;
 const NOTE_COUNT = 47;
 
 const gridEl = document.getElementById('grid');
-const legendEl = document.getElementById('legend');
 const chaosToggle = document.getElementById('chaos-toggle');
 
 let isChaos = chaosToggle.checked;
@@ -220,17 +219,6 @@ function buildCells(force = false) {
     frag.appendChild(div);
   }
   gridEl.appendChild(frag);
-
-  // Build legend once per rebuild
-  renderLegend();
-}
-
-function renderLegend() {
-  const parts = [];
-  for (let i = 0; i < NOTE_COUNT; i++) {
-    parts.push(`<span class="swatch" style="background:${colors[i]}"></span><span>${i + 1}</span>`);
-  }
-  legendEl.innerHTML = parts.join(' · ');
 }
 
 function playCell(el, noteIndex, velocity = 1.0) {
